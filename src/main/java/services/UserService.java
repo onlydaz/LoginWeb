@@ -25,4 +25,15 @@ public class UserService implements IUserService{
 		return userDao.findByUserName(username);
 	}
 
+	@Override
+	public UserModel findUserByEmail(String email) {
+		return userDao.findByEmail(email);
+	}
+
+	@Override
+	public void insert(UserModel newUser) {
+		userDao.insert(newUser);
+	}
+	
+
 }

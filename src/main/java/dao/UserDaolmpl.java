@@ -82,24 +82,36 @@ public class UserDaolmpl implements IUserDao {
 
 	@Override
 	public void insert(UserModel user) {
-		String sql = "INSERT INTO users (id, username, password, images, fullname, email, phone, roleid, createDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";		
-		try {
-			conn = new DBConnectionSQLSever().getConnection();
-			ps = conn.prepareStatement(sql);
-			
-			ps.setInt(1, user.getId());
-			ps.setString(2, user.getUsername()); 
-			ps.setString(3,user.getPassword()); 
-			ps.setString(4,user.getImages());
-			ps.setString(5, user.getFullname());
-			
-			ps.executeUpdate();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		
-		
+	    String sql = "INSERT INTO users (username, password, fullname, email, roleid) VALUES (?, ?, ?, ?, ?)";		
+	    try {
+	        conn = new DBConnectionSQLSever().getConnection();
+	        ps = conn.prepareStatement(sql);
+	        
+	        ps.setString(1, user.getUsername()); 
+	        ps.setString(2, user.getPassword()); 
+	        ps.setString(3, user.getFullname());
+	        ps.setString(4, user.getEmail());
+	        ps.setInt(5, user.getRoleid());
+
+	        int rowsAffected = ps.executeUpdate();
+	        if (rowsAffected > 0) {
+	            System.out.println("User successfully registered.");
+	        } else {
+	            System.out.println("User registration failed.");
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    } finally {
+	        try {
+	            if (ps != null) ps.close();
+	            if (conn != null) conn.close();
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	    }
 	}
+
+
 
 	@Override
 	public UserModel findByUserName(String username) {
@@ -128,7 +140,8 @@ public class UserDaolmpl implements IUserDao {
 	    }
 	    return null;
 	}
-	// Hàm main để kiểm tra
+	
+	// Hàm main kiểm tra
     public static void main(String[] args) {
         UserDaolmpl userDao = new UserDaolmpl();
         String testUsername = "duydat";
@@ -147,5 +160,42 @@ public class UserDaolmpl implements IUserDao {
         } else {
             System.out.println("Không tìm thấy người dùng với username: " + testUsername);
         }
+    }
+    
+    @Override
+    public UserModel findByEmail(String email) {
+        String sql = "SELECT * FROM users WHERE email = ?";
+        UserModel user = null;
+
+        try {
+            conn = new DBConnectionSQLSever().getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, email);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                user = new UserModel();
+                user.setId(rs.getInt("id"));
+                user.setEmail(rs.getString("email"));
+                user.setUsername(rs.getString("username"));
+                user.setFullname(rs.getString("fullname"));
+                user.setPassword(rs.getString("password"));
+                user.setImages(rs.getString("images"));
+                user.setRoleid(rs.getInt("roleid"));
+                user.setPhone(rs.getString("phone"));
+                user.setCreateDate(rs.getDate("createDate"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return user;
     }
 }
